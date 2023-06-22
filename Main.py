@@ -251,17 +251,17 @@ class BitboardChess:
     def print_board(self):
         piece_symbols = {
             self.WHITE: {
-                self.PAWN: 'P', self.KNIGHT: 'K', self.BISHOP: 'B',
+                self.PAWN: 'P', self.KNIGHT: 'N', self.BISHOP: 'B',
                 self.ROOK: 'R', self.QUEEN: 'Q', self.KING: 'K'
             },
             self.BLACK: {
-                self.PAWN: 'p', self.KNIGHT: 'k', self.BISHOP: 'b',
+                self.PAWN: 'p', self.KNIGHT: 'n', self.BISHOP: 'b',
                 self.ROOK: 'r', self.QUEEN: 'q', self.KING: 'k'
             }
         }
 
         # Iterate over the board and print the pieces
-        print("   a b c d e f g h")
+        print("    a b c d e f g h")
         print("  -----------------")
         for row in range(8):
             print(f"{8 - row} |", end="")
@@ -324,12 +324,15 @@ class BitboardChess:
 
 
 chess = BitboardChess()
-fen = 'rnbqkbnr/pppppppp/8/p7/8/8/PPPPPPPP/RNBQKBNR w - - 0 1'
+fen = 'rnbqkbnr/pppppppp/8/p7/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
 chess.load_from_fen(fen)
 chess.print_board()
 print(chess.get_piece_on_square('b2'))
 print(chess.currentPlayer())
-chess.make_move('b2','b3')
+chess.make_move('b1','c3')
 print(chess.currentPlayer())
 chess.make_move('a7','a6')
+chess.make_move('c3','d5')
+chess.make_move('a5','a4')
+chess.make_move('d5','c7')
 chess.print_board()
