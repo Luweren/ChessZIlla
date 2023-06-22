@@ -157,6 +157,8 @@ class BitboardChess:
 
         self.current_player = self.WHITE
 
+    def currentPlayer(self):
+        return self.current_player
     def make_move(self, from_square, to_square):
         piece = self.get_piece_on_square(from_square)
         if piece is None:
@@ -218,13 +220,35 @@ class BitboardChess:
     def is_legal_pawn_move(self, from_square, to_square):
         from_bb = self.squares[from_square]
         to_bb = self.squares[to_square]
-        direction = -1 if self.current_player == self.WHITE else 1
 
-        if to_bb & from_bb << 8 * direction:  # Single move forward
+        if self.current_player == self.WHITE:
+            direction = 1
+            starting_rank = 2
+            en_passant_rank = 5
+        else:
+            direction = -1
+            starting_rank = 7
+            en_passant_rank = 4
+
+
+        if direction is 1:
+            if to_bb & (from_bb << 8):  # Single move forward
+                return True
+        if direction is -1:
+            if to_bb & (from_bb >> 8):  # Single move forward
+                return True
+
+        elif from_square[1] == str(starting_rank) and to_bb & (from_bb << 16 * direction):  # Double move forward
             return True
-        if (to_bb & (from_bb << 7 * direction) and (from_square % self.BOARD_SIZE != 0) or
-                (to_bb & (from_bb << 9 * direction) and (from_square % self.BOARD_SIZE != self.BOARD_SIZE - 1))):
+        elif (to_bb & (from_bb << 7 * direction)) and (to_square[0] != 'h'):  # Capture to the left
             return True
+        elif (to_bb & (from_bb << 9 * direction)) and (to_square[0] != 'a'):  # Capture to the right
+            return True
+        elif (to_bb & (from_bb << 7 * direction)) and (to_square[1] == str(en_passant_rank)):
+            return True
+        elif (to_bb & (from_bb << 9 * direction)) and (to_square[1] == str(en_passant_rank)):
+            return True
+
         return False
 
     def is_legal_knight_move(self, from_square, to_square):
@@ -386,4 +410,10 @@ class BitboardChess:
 chess = BitboardChess()
 fen = 'rnbqkbnr/pppppppp/8/p7/8/8/PPPPPPPP/RNBQKBNR w - - 0 1'
 chess.load_from_fen(fen)
+chess.print_board()
+print(chess.get_piece_on_square('b2'))
+print(chess.currentPlayer())
+chess.make_move('b2','b3')
+print(chess.currentPlayer())
+chess.make_move('a7','a6')
 chess.print_board()
