@@ -178,25 +178,47 @@ class BitboardChess:
         )
         return bool(to_bb & valid_moves)
 
+    #help function for is_legal_move
+    def generate_bishop_moves(self, square):   # generate only legal moves from this square
+        moves = 0
+        files = 8
+        directions = [-9, -7, 7, 9]  # Possible diagonal directions
+        # Generate moves for each direction
+        for direction in directions:
+            for distance in range(1, files):
+                target_square = square + (direction * distance)
+
+                # Check if target square is within the board
+                if target_square >= 0 and target_square < 63:
+                    # Check if the target square is on the same diagonal
+                    if abs((target_square % files) - (square % files)) == distance:
+
+                        #check if something is on the way
+                        if self.is_piece_on_square(self.current_player, target_square):    #if target_square == same color:  dont add this square as a possible move and switch direction
+                            break
+                        elif not self.is_piece_on_square(self.current_player, target_square):   # target_square == oposite color: add this square to moves and switch direction
+                            moves |= 1 << target_square
+                            break
+                        # Set the bit for the target square
+                        moves |= 1 << target_square
+        return moves
+
+    
     def is_legal_bishop_move(self, from_square, to_square):
+         
         from_bb = self.squares[from_square]
         to_bb = self.squares[to_square]
-        valid_moves = (
-                self.get_bishop_moves(from_bb, self.squares['a1'], self.squares['h8'], -9) |
-                self.get_bishop_moves(from_bb, self.squares['h1'], self.squares['a8'], -7) |
-                self.get_bishop_moves(from_bb, self.squares['a8'], self.squares['h1'], 7) |
-                self.get_bishop_moves(from_bb, self.squares['h8'], self.squares['a1'], 9)
-        )
+        valid_moves = generate_bishop_moves(self,from_bb)
         return bool(to_bb & valid_moves)
 
     def is_legal_rook_move(self, from_square, to_square):
         from_bb = self.squares[from_square]
         to_bb = self.squares[to_square]
         valid_moves = (
-                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['h1'], -1) |
-                self.get_rook_moves(from_bb, self.squares['h1'], self.squares['a1'], 1) |
-                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['a8'], 8) |
-                self.get_rook_moves(from_bb, self.squares['a8'], self.squares['a1'], -8)
+                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['h1'], 1) |
+                self.get_rook_moves(from_bb, self.squares['h1'], self.squares['a1'], -1) |
+                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['a8'], -8) |
+                self.get_rook_moves(from_bb, self.squares['a8'], self.squares['a1'], 8)
         )
         return bool(to_bb & valid_moves)
 
@@ -234,7 +256,12 @@ class BitboardChess:
         current_bb = start_bb
         while current_bb != end_bb:
             moves |= current_bb
-            current_bb <<= shift
+            if shift >0:
+                current_bb <<= shift
+            elif shift <0:
+                current_bb >>= -shift
+            else: 
+                break
         moves |= current_bb  # Include the last square
         return moves
 
@@ -261,7 +288,6 @@ class BitboardChess:
         }
 
         # Iterate over the board and print the pieces
-        print("    a b c d e f g h")
         print("  -----------------")
         for row in range(8):
             print(f"{8 - row} |", end="")
@@ -275,6 +301,8 @@ class BitboardChess:
                     print(f" {piece_symbols[player][piece]}", end="")
             print()
         print("  -----------------")
+        print("    a b c d e f g h")
+
 
     def load_from_fen(self, fen):
         fen_to_piece = {
@@ -334,5 +362,10 @@ print(chess.currentPlayer())
 chess.make_move('a7','a6')
 chess.make_move('c3','d5')
 chess.make_move('a5','a4')
-chess.make_move('d5','c7')
+chess.make_move('d2','d3')
+chess.print_board()
+
+chess.make_move('h7','h6')
+chess.make_move('c1','d2')
+
 chess.print_board()
