@@ -226,9 +226,11 @@ class BitboardChess:
                         target_square = from_bb >> -direction
                 elif distance > 1:
                     if direction > 0:
+                        target_square = from_bb << direction
                         for d in range(1, distance):    # then we push 3 times in the given direction 
                             target_square <<= direction
                     if direction < 0:
+                        target_square = from_bb >> -direction
                         for d1 in range(1,distance):        #range(1,3) => leads to next line
                             target_square >>= -direction    #being executed two times => works as intended
 
@@ -380,9 +382,80 @@ class BitboardChess:
         if square in self.squares:
             self.piece_bitboards[player][piece] |= self.squares[square]
 
+    def generate_rook_moves(self, square):
+        if isinstance(square, str):
+            # Convert the square from string to integer representation
+            square = self.squares[square]
+
+        moves = []
+
+        # Define the rook's possible move directions (up, down, left, right)
+        directions = [(1), (-1), (8), (-8)]
+
+        for direction in directions:
+            dest_square = square
+
+            while True:
+                dest_square = shift(dest_square, direction)
+                dest_square_char = self.get_square_name(dest_square)
+
+                if dest_square_char[0] == 'a' and direction == -1:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the left edge of the board
+
+                if dest_square_char[0] == 'h' and direction == 1:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the right edge of the board
+
+                if dest_square_char[1] == '1' and direction == -8:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the bottom edge of the board
+
+                if dest_square_char[1] == '8' and direction == 8:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the top edge of the board
+
+                if self.is_piece_on_square(self.current_player, dest_square_char):
+                    break  # Reached own piece, cannot move further
+
+                moves.append((self.get_square_name(square), dest_square_char))
+
+                if self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char):
+                    break  # Reached opponent's piece, can capture and stop moving
+
+        return moves
+
+
+    def get_square_name(self, square):
+
+        for name, value in self.squares.items():
+            if square & value:
+                return name
+
+        return None  # Square not found
+
+    def get_opponent(self, color):
+        if color == self.WHITE:
+            return self.BLACK
+        elif color == self.BLACK:
+            return self.WHITE
+        else:
+            raise ValueError("Invalid color value.")
 
 chess = BitboardChess()
-fen = 'rnbqkbnr/pppppppp/8/p7/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
+fen = 'rnbqkbnr/pppppppp/8/pr6/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
 chess.load_from_fen(fen)
 chess.print_board()
 print(chess.get_piece_on_square('b2'))
@@ -395,12 +468,19 @@ chess.make_move('a5','a4')
 chess.make_move('d2','d3')
 chess.print_board()
 
+
+
+
 #chess.make_move('h7','h6')
 #chess.make_move('c1','d2')
 
 #print(chess.is_legal_bishop_move('c1','e3'))
-print(chess.is_legal_bishop_move('f8','e7'))
-
+#print(chess.is_legal_bishop_move('f8','e7'))
+a = chess.squares['a8']
+print(a)
+print(chess.get_square_name(a))
+rookm = chess.generate_rook_moves('b5')
+print(rookm)
 #problem: it adds: 
 #square  e7  added
 #square  d6  added  # where is c5?
