@@ -206,9 +206,39 @@ class BitboardChess:
     
     def is_legal_bishop_move(self, from_square, to_square):
          
-        from_bb = self.squares[from_square]
+        from_bb = self.squares[from_square]   # why and how transform?
         to_bb = self.squares[to_square]
-        valid_moves = generate_bishop_moves(self,from_bb)
+        valid_moves = 0
+        files = 8
+        directions = [-9, -7, 7, 9]  # Possible diagonal directions
+
+
+        key_list = list(self.squares.keys())
+        val_list = list(self.squares.values())
+
+        # Generate moves for each direction
+        for direction in directions:
+            for distance in range(1, files):    #if distance equals to 3
+                if distance == 1:
+                    if direction > 0:
+                        target_square = from_bb << direction
+                    if direction < 0:
+                        target_square = from_bb >> -direction
+                elif distance > 1:
+                    if direction > 0:
+                        for d in range(1, distance):    # then we push 3 times in the given direction 
+                            target_square <<= direction
+                    if direction < 0:
+                        for d1 in range(1,distance):        #range(1,3) => leads to next line
+                            target_square >>= -direction    #being executed two times => works as intended
+
+                # Check if target square is within the board
+                if target_square >= 1 and target_square < (1<<63):
+                    # Set the bit for the target square
+                    position = val_list.index(target_square)
+                    print("square ",key_list[position], " added") 
+                    valid_moves |= target_square
+
         return bool(to_bb & valid_moves)
 
     def is_legal_rook_move(self, from_square, to_square):
@@ -359,13 +389,23 @@ print(chess.get_piece_on_square('b2'))
 print(chess.currentPlayer())
 chess.make_move('b1','c3')
 print(chess.currentPlayer())
-chess.make_move('a7','a6')
+chess.make_move('e7','e6')
 chess.make_move('c3','d5')
 chess.make_move('a5','a4')
 chess.make_move('d2','d3')
 chess.print_board()
 
-chess.make_move('h7','h6')
-chess.make_move('c1','d2')
+#chess.make_move('h7','h6')
+#chess.make_move('c1','d2')
 
-chess.print_board()
+#print(chess.is_legal_bishop_move('c1','e3'))
+print(chess.is_legal_bishop_move('f8','e7'))
+
+#problem: it adds: 
+#square  e7  added
+#square  d6  added  # where is c5?
+#square  b4  added  # where is a3?
+#square  g7  added
+#square  h6  added
+#square  b5  added
+#square  e2  added   # how come?  #should not be here
