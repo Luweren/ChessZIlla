@@ -208,13 +208,13 @@ class BitboardChess:
          
         from_bb = self.squares[from_square]   # why and how transform?
         to_bb = self.squares[to_square]
-        valid_moves = 0
+        valid_moves = 0     # all valid moves are saved here
         files = 8
         directions = [-9, -7, 7, 9]  # Possible diagonal directions
 
 
-        key_list = list(self.squares.keys())
-        val_list = list(self.squares.values())
+        key_list = list(self.squares.keys())        #needed for printing, only for debugging
+        val_list = list(self.squares.values())      #same here, only for debugging purposes
 
         # Generate moves for each direction
         for direction in directions:
@@ -235,8 +235,8 @@ class BitboardChess:
                 # Check if target square is within the board
                 if target_square >= 1 and target_square < (1<<63):
                     # Set the bit for the target square
-                    position = val_list.index(target_square)
-                    print("square ",key_list[position], " added") 
+                    position = val_list.index(target_square)            #debugging
+                    print("square ",key_list[position], " added")       #debugging
                     valid_moves |= target_square
 
         return bool(to_bb & valid_moves)
