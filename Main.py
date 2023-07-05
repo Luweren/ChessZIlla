@@ -178,82 +178,6 @@ class BitboardChess:
         )
         return bool(to_bb & valid_moves)
 
-    #help function for is_legal_move
-    def generate_bishop_moves(self, square):   # generate only legal moves from this square
-        moves = 0
-        files = 8
-        directions = [-9, -7, 7, 9]  # Possible diagonal directions
-        # Generate moves for each direction
-        for direction in directions:
-            for distance in range(1, files):
-                target_square = square + (direction * distance)
-
-                # Check if target square is within the board
-                if target_square >= 0 and target_square < 63:
-                    # Check if the target square is on the same diagonal
-                    if abs((target_square % files) - (square % files)) == distance:
-
-                        #check if something is on the way
-                        if self.is_piece_on_square(self.current_player, target_square):    #if target_square == same color:  dont add this square as a possible move and switch direction
-                            break
-                        elif not self.is_piece_on_square(self.current_player, target_square):   # target_square == oposite color: add this square to moves and switch direction
-                            moves |= 1 << target_square
-                            break
-                        # Set the bit for the target square
-                        moves |= 1 << target_square
-        return moves
-
-    
-    def is_legal_bishop_move(self, from_square, to_square):
-         
-        from_bb = self.squares[from_square]   # why and how transform?
-        to_bb = self.squares[to_square]
-        valid_moves = 0     # all valid moves are saved here
-        files = 8
-        directions = [-9, -7, 7, 9]  # Possible diagonal directions
-
-
-        key_list = list(self.squares.keys())        #needed for printing, only for debugging
-        val_list = list(self.squares.values())      #same here, only for debugging purposes
-
-        # Generate moves for each direction
-        for direction in directions:
-            for distance in range(1, files):    #if distance equals to 3
-                if distance == 1:
-                    if direction > 0:
-                        target_square = from_bb << direction
-                    if direction < 0:
-                        target_square = from_bb >> -direction
-                elif distance > 1:
-                    if direction > 0:
-                        target_square = from_bb << direction
-                        for d in range(1, distance):    # then we push 3 times in the given direction 
-                            target_square <<= direction
-                    if direction < 0:
-                        target_square = from_bb >> -direction
-                        for d1 in range(1,distance):        #range(1,3) => leads to next line
-                            target_square >>= -direction    #being executed two times => works as intended
-
-                # Check if target square is within the board
-                if target_square >= 1 and target_square < (1<<63):
-                    # Set the bit for the target square
-                    position = val_list.index(target_square)            #debugging
-                    print("square ",key_list[position], " added")       #debugging
-                    valid_moves |= target_square
-
-        return bool(to_bb & valid_moves)
-
-    def is_legal_rook_move(self, from_square, to_square):
-        from_bb = self.squares[from_square]
-        to_bb = self.squares[to_square]
-        valid_moves = (
-                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['h1'], 1) |
-                self.get_rook_moves(from_bb, self.squares['h1'], self.squares['a1'], -1) |
-                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['a8'], -8) |
-                self.get_rook_moves(from_bb, self.squares['a8'], self.squares['a1'], 8)
-        )
-        return bool(to_bb & valid_moves)
-
     def is_legal_queen_move(self, from_square, to_square):
         return self.is_legal_bishop_move(from_square, to_square) or self.is_legal_rook_move(from_square, to_square)
 
@@ -282,30 +206,6 @@ class BitboardChess:
                     return piece
         return None
 
-    @staticmethod
-    def get_bishop_moves(from_bb, start_bb, end_bb, shift):
-        moves = 0
-        current_bb = start_bb
-        while current_bb != end_bb:
-            moves |= current_bb
-            if shift >0:
-                current_bb <<= shift
-            elif shift <0:
-                current_bb >>= -shift
-            else: 
-                break
-        moves |= current_bb  # Include the last square
-        return moves
-
-    @staticmethod
-    def get_rook_moves(from_bb, start_bb, end_bb, shift):
-        moves = 0
-        current_bb = start_bb
-        while current_bb != end_bb:
-            moves |= current_bb
-            current_bb = (current_bb << shift) & 0xFFFFFFFFFFFFFFFF
-        moves |= current_bb  # Include the last square
-        return moves
 
     def print_board(self):
         piece_symbols = {
@@ -398,7 +298,6 @@ class BitboardChess:
             while True:
                 dest_square = shift(dest_square, direction)
                 dest_square_char = self.get_square_name(dest_square)
-
                 if dest_square_char[0] == 'a' and direction == -1:
                     if self.is_piece_on_square(self.current_player, dest_square_char):
                         break  # Reached own piece, cannot move further
@@ -438,6 +337,62 @@ class BitboardChess:
         return moves
 
 
+    def generate_bishop_moves(self, square):   # generate only legal moves from this square
+        if isinstance(square, str):
+            # Convert the square from string to integer representation
+            square = self.squares[square]
+
+        moves = []
+
+        # Define the bishop's possible move directions (up, down, left, right)
+        directions = [(7), (-7), (9), (-9)]
+
+        for direction in directions:
+            dest_square = square
+
+            while True:
+                dest_square = shift(dest_square, direction)
+                dest_square_char = self.get_square_name(dest_square)
+
+                if dest_square_char[0] == 'a' and (direction == 7 or direction == -9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the left edge of the board
+
+                if dest_square_char[0] == 'h' and (direction == -7 or direction == 9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the right edge of the board
+
+                if dest_square_char[1] == '1' and (direction == -7 or direction == -9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the bottom edge of the board
+
+                if dest_square_char[1] == '8' and (direction == 7 or direction == 9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the top edge of the board
+
+                if self.is_piece_on_square(self.current_player, dest_square_char):
+                    break  # Reached own piece, cannot move further
+
+                moves.append((self.get_square_name(square), dest_square_char))
+
+                if self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char):
+                    break  # Reached opponent's piece, can capture and stop moving
+
+        return moves
+
+
     def get_square_name(self, square):
 
         for name, value in self.squares.items():
@@ -455,7 +410,7 @@ class BitboardChess:
             raise ValueError("Invalid color value.")
 
 chess = BitboardChess()
-fen = 'rnbqkbnr/pppppppp/8/pr6/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
+fen = 'rnbqkbnr/pppppppp/8/pB6/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
 chess.load_from_fen(fen)
 chess.print_board()
 print(chess.get_piece_on_square('b2'))
@@ -466,6 +421,7 @@ chess.make_move('e7','e6')
 chess.make_move('c3','d5')
 chess.make_move('a5','a4')
 chess.make_move('d2','d3')
+chess.make_move('h7','h6')
 chess.print_board()
 
 
@@ -479,7 +435,7 @@ chess.print_board()
 a = chess.squares['a8']
 print(a)
 print(chess.get_square_name(a))
-rookm = chess.generate_rook_moves('b5')
+rookm = chess.generate_bishop_moves('b5')
 print(rookm)
 #problem: it adds: 
 #square  e7  added
