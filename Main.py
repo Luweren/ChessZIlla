@@ -178,28 +178,6 @@ class BitboardChess:
         )
         return bool(to_bb & valid_moves)
 
-    def is_legal_bishop_move(self, from_square, to_square):
-        from_bb = self.squares[from_square]
-        to_bb = self.squares[to_square]
-        valid_moves = (
-                self.get_bishop_moves(from_bb, self.squares['a1'], self.squares['h8'], -9) |
-                self.get_bishop_moves(from_bb, self.squares['h1'], self.squares['a8'], -7) |
-                self.get_bishop_moves(from_bb, self.squares['a8'], self.squares['h1'], 7) |
-                self.get_bishop_moves(from_bb, self.squares['h8'], self.squares['a1'], 9)
-        )
-        return bool(to_bb & valid_moves)
-
-    def is_legal_rook_move(self, from_square, to_square):
-        from_bb = self.squares[from_square]
-        to_bb = self.squares[to_square]
-        valid_moves = (
-                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['h1'], -1) |
-                self.get_rook_moves(from_bb, self.squares['h1'], self.squares['a1'], 1) |
-                self.get_rook_moves(from_bb, self.squares['a1'], self.squares['a8'], 8) |
-                self.get_rook_moves(from_bb, self.squares['a8'], self.squares['a1'], -8)
-        )
-        return bool(to_bb & valid_moves)
-
     def is_legal_queen_move(self, from_square, to_square):
         return self.is_legal_bishop_move(from_square, to_square) or self.is_legal_rook_move(from_square, to_square)
 
@@ -228,25 +206,6 @@ class BitboardChess:
                     return piece
         return None
 
-    @staticmethod
-    def get_bishop_moves(from_bb, start_bb, end_bb, shift):
-        moves = 0
-        current_bb = start_bb
-        while current_bb != end_bb:
-            moves |= current_bb
-            current_bb <<= shift
-        moves |= current_bb  # Include the last square
-        return moves
-
-    @staticmethod
-    def get_rook_moves(from_bb, start_bb, end_bb, shift):
-        moves = 0
-        current_bb = start_bb
-        while current_bb != end_bb:
-            moves |= current_bb
-            current_bb = (current_bb << shift) & 0xFFFFFFFFFFFFFFFF
-        moves |= current_bb  # Include the last square
-        return moves
 
     def print_board(self):
         piece_symbols = {
@@ -261,7 +220,6 @@ class BitboardChess:
         }
 
         # Iterate over the board and print the pieces
-        print("    a b c d e f g h")
         print("  -----------------")
         for row in range(8):
             print(f"{8 - row} |", end="")
@@ -275,6 +233,8 @@ class BitboardChess:
                     print(f" {piece_symbols[player][piece]}", end="")
             print()
         print("  -----------------")
+        print("    a b c d e f g h")
+
 
     def load_from_fen(self, fen):
         fen_to_piece = {
@@ -322,17 +282,341 @@ class BitboardChess:
         if square in self.squares:
             self.piece_bitboards[player][piece] |= self.squares[square]
 
+    def generate_king_moves(self, square):
+        if isinstance(square, str):
+            square = self.squares[square]
+        
+        moves = []
+        # Define the king's possible move directions (right, left, up, down, up-left, down-right, up-right, down-left)
+        directions = [(1), (-1), (8), (-8), (7), (-7), (9), (-9)]
+
+        for direction in directions:
+            from_square = square
+
+            #dest_square = shift(dest_square, direction)
+            from_square_char = self.get_square_name(from_square)
+
+            if from_square_char[0] == 'a' and ((direction == -1) or (direction ==+7) or (direction == -9)):
+                continue
+
+            if from_square_char[0] == 'h' and ((direction == 1) or (direction ==-7) or (direction == 9)):
+                continue
+
+            if from_square_char[1] == '1' and ((direction == -9 ) or (direction == -8) or (direction==-7)):
+                continue
+
+            if from_square_char[1] == '8' and ((direction == 7 ) or (direction == 8) or (direction==9)):
+                continue
+            
+            dest_square = shift(from_square, direction)
+            dest_square_char = self.get_square_name(dest_square)
+
+            if self.is_piece_on_square(self.current_player, dest_square_char):
+                continue
+
+            moves.append((self.get_square_name(square), dest_square_char))
+
+        return moves
+
+    def generate_knight_moves(self, square):
+        if isinstance(square, str):
+            square = self.squares[square]
+        
+        moves = []
+
+        directions = [(6), (10), (-10), (-6), (15), (17), (-17), (-15)]
+
+        for direction in directions:
+            from_square = square
+            from_square_char = self.get_square_name(from_square)
+
+            if from_square_char[0] == 'a' and ((direction == -17) or (direction == -10) or (direction == 6) or (direction == 15)):
+                continue
+            
+            if from_square_char[0] == 'b' and ((direction ==-10) or (direction == 6)):
+                continue
+
+            if from_square_char[0] == 'h' and ((direction ==-15) or (direction == -6) or (direction == 10) or (direction == 17)):
+                continue
+            
+            if from_square_char[0] == 'g' and ((direction == -6) or (direction == 10)):
+                continue
+
+            if from_square_char[1] == '1' and ((direction == -10) or (direction == -17) or (direction == -15) or (direction ==-6)):
+                continue
+
+            if from_square_char[1] == '2' and ((direction == -17) or (direction == -15)):
+                continue
+
+            if from_square_char[1] == '8' and ((direction == 6) or (direction == 15) or (direction ==17) or (direction == 10)):
+                continue
+
+            if from_square_char[1] == '7' and ((direction == 15) or (direction == 17)):
+                continue
+
+            dest_square = shift(from_square, direction)
+            dest_square_char = self.get_square_name(dest_square)
+
+            if self.is_piece_on_square(self.current_player, dest_square_char):
+                continue
+
+            moves.append((self.get_square_name(square), dest_square_char))
+
+        return moves
+
+    def generate_pawn_moves(self, square):
+        if isinstance(square, str):
+            # Convert the square from string to integer representation
+            square = self.squares[square]
+
+        moves = []
+
+        if self.current_player == self.WHITE:
+            directions = [(8), (16), (7), (9)]
+        else:
+            directions = [(-8), (-16), (-7), (-9)]
+        
+        for direction in directions:
+            from_square = square
+            from_square_char = self.get_square_name(from_square)
+
+            #checking edges of the board
+            if from_square_char[0] == 'a' and ((direction == 7) or (direction == -9)):
+                continue
+
+            if from_square_char[0] == 'h' and ((direction == 9) or (direction == -7)):
+                continue
+
+            dest_square = shift(from_square, direction)
+            dest_square_char = self.get_square_name(dest_square)
+            #vertical movement
+            #while we go vertical on the board we always check the square in front of us
+            if direction == 8 or direction == 16 or direction == -8 or direction == -16:  # if direction % 8 == 0: 
+                if direction < 0:
+                    help_dest_square = shift(from_square, -8)
+                else: 
+                    help_dest_square = shift(from_square, 8)
+                
+                help_dest_square_char = self.get_square_name(help_dest_square)
+    
+                if self.is_piece_on_square(self.current_player, help_dest_square_char):
+                    continue
+                if self.is_piece_on_square(self.get_opponent(self.current_player), help_dest_square_char):
+                    continue
+
+            if not (from_square_char[1] == '2' or from_square_char[1] == '7') and (direction == 16 or direction == -16):
+                continue
+
+            if (from_square_char[1] == '2' and direction == 16)  or (from_square_char[1] == '7' and direction == -16):
+                #the piece can go up two squares only if there is no pieces
+                if self.is_piece_on_square(self.current_player, dest_square_char):
+                    continue
+                if self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char):
+                    continue
+            #diagonal movement
+            #if direction is diagonal and there is no enemie piece on the dest_square then skip
+            if not self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char) and (direction == 7 or direction == 9 or direction == -7 or direction == -9):
+                continue
+
+            moves.append((self.get_square_name(square), dest_square_char))
+        return moves
+    
+    def generate_rook_moves(self, square):
+        if isinstance(square, str):
+            # Convert the square from string to integer representation
+            square = self.squares[square]
+
+        moves = []
+
+        # Define the rook's possible move directions (up, down, left, right)
+        directions = [(1), (-1), (8), (-8)]
+
+        for direction in directions:
+            dest_square = square
+
+            while True:
+                dest_square = shift(dest_square, direction)
+                dest_square_char = self.get_square_name(dest_square)
+                if dest_square_char[0] == 'a' and direction == -1:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the left edge of the board
+
+                if dest_square_char[0] == 'h' and direction == 1:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the right edge of the board
+
+                if dest_square_char[1] == '1' and direction == -8:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the bottom edge of the board
+
+                if dest_square_char[1] == '8' and direction == 8:
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the top edge of the board
+
+                if self.is_piece_on_square(self.current_player, dest_square_char):
+                    break  # Reached own piece, cannot move further
+
+                moves.append((self.get_square_name(square), dest_square_char))
+
+                if self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char):
+                    break  # Reached opponent's piece, can capture and stop moving
+
+        return moves
+
+
+    def generate_bishop_moves(self, square):   # generate only legal moves from this square
+        if isinstance(square, str):
+            # Convert the square from string to integer representation
+            square = self.squares[square]
+
+        moves = []
+
+        # Define the bishop's possible move directions (up, down, left, right)
+        directions = [(7), (-7), (9), (-9)]
+
+        for direction in directions:
+            dest_square = square
+
+            while True:
+                dest_square = shift(dest_square, direction)
+                dest_square_char = self.get_square_name(dest_square)
+
+                if dest_square_char[0] == 'a' and (direction == 7 or direction == -9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the left edge of the board
+
+                if dest_square_char[0] == 'h' and (direction == -7 or direction == 9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the right edge of the board
+
+                if dest_square_char[1] == '1' and (direction == -7 or direction == -9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the bottom edge of the board
+
+                if dest_square_char[1] == '8' and (direction == 7 or direction == 9):
+                    if self.is_piece_on_square(self.current_player, dest_square_char):
+                        break  # Reached own piece, cannot move further
+
+                    moves.append((self.get_square_name(square), dest_square_char))
+                    break  # Reached the top edge of the board
+
+                if self.is_piece_on_square(self.current_player, dest_square_char):
+                    break  # Reached own piece, cannot move further
+
+                moves.append((self.get_square_name(square), dest_square_char))
+
+                if self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char):
+                    break  # Reached opponent's piece, can capture and stop moving
+
+        return moves
+
+
+    def get_square_name(self, square):
+
+        for name, value in self.squares.items():
+            if square & value:
+                return name
+
+        return None  # Square not found
+
+    def get_opponent(self, color):
+        if color == self.WHITE:
+            return self.BLACK
+        elif color == self.BLACK:
+            return self.WHITE
+        else:
+            raise ValueError("Invalid color value.")
 
 chess = BitboardChess()
-fen = 'rnbqkbnr/pppppppp/8/p7/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
+fen = 'rnbqkbnr/pppppppp/8/pB6/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
 chess.load_from_fen(fen)
 chess.print_board()
 print(chess.get_piece_on_square('b2'))
 print(chess.currentPlayer())
 chess.make_move('b1','c3')
 print(chess.currentPlayer())
-chess.make_move('a7','a6')
+chess.make_move('e7','e6')
 chess.make_move('c3','d5')
 chess.make_move('a5','a4')
-chess.make_move('d5','c7')
+chess.make_move('d2','d3')
+chess.make_move('h7','h6')
 chess.print_board()
+
+
+
+
+#chess.make_move('h7','h6')
+#chess.make_move('c1','d2')
+
+#print(chess.is_legal_bishop_move('c1','e3'))
+#print(chess.is_legal_bishop_move('f8','e7'))
+a = chess.squares['a8']
+print(a)
+print(chess.get_square_name(a))
+rookm = chess.generate_bishop_moves('b5')
+print(rookm)
+#testing king's, knight's, pawn's movement generation
+print("king moves from e1")
+kingm = chess.generate_king_moves('e1')
+print(kingm)
+
+print("knight moves from g1")
+knightm = chess.generate_knight_moves('g1')
+print(knightm)
+
+print("knight moves from g8")
+knightm = chess.generate_knight_moves('g8')
+print(knightm)
+
+print("testing white pawn moves")
+pawnm_double_white = chess.generate_pawn_moves('b2')
+print(pawnm_double_white)
+
+pawnm_single_white = chess.generate_pawn_moves('a2')
+print(pawnm_single_white)
+
+#using black pawn to test a white pawn's capture
+pawnm_capture_white = chess.generate_pawn_moves('e6')
+print(pawnm_capture_white)
+
+pawnm_nomove = chess.generate_pawn_moves('d3')
+print(pawnm_nomove)
+
+#changing side
+chess.make_move('a2','a3')
+print("testing black pawn moves")
+pawnm_single_black = chess.generate_pawn_moves('d7')
+print(pawnm_single_black)
+pawnm_double_black = chess.generate_pawn_moves('f7')
+print(pawnm_double_black)
+pawnm_capture_black = chess.generate_pawn_moves('e6')
+print(pawnm_capture_black)
+#problem: it adds: 
+#square  e7  added
+#square  d6  added  # where is c5?
+#square  b4  added  # where is a3?
+#square  g7  added
+#square  h6  added
+#square  b5  added
+#square  e2  added   # how come?  #should not be here
