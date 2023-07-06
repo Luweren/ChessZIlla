@@ -233,7 +233,56 @@ class BitboardChess:
 
             moves.append((self.get_square_name(square), dest_square_char))
 
+            # Check for castling moves
+        if self.can_castle_kingside(self.current_player):
+                kingside_dest = self.squares['g1'] if self.current_player == self.WHITE else self.squares['g8']
+                moves.append((self.get_square_name(square), self.get_square_name(kingside_dest)))
+
+        if self.can_castle_queenside(self.current_player):
+                queenside_dest = self.squares['c1'] if self.current_player == self.WHITE else self.squares['c8']
+                moves.append((self.get_square_name(square), self.get_square_name(queenside_dest)))
+
         return moves
+
+    def can_castle_kingside(self, player):
+        # Check if the king and the kingside rook are in their initial positions
+        king_start_square = self.squares['e1'] if player == self.WHITE else self.squares['e8']
+        rook_start_square = self.squares['h1'] if player == self.WHITE else self.squares['h8']
+        if self.get_piece_on_square(king_start_square) != self.KING or self.get_piece_on_square(
+                rook_start_square) != self.ROOK:
+            return False
+
+        # Check if there are no pieces between the king and the rook
+        squares_between = [self.squares['f1'], self.squares['g1']] if player == self.WHITE else [self.squares['f8'],
+                                                                                                 self.squares['g8']]
+        if any(self.get_piece_on_square(square) is not None for square in squares_between):
+            return False
+
+        # Check if the king is not in check and does not pass through attacked squares
+
+
+        # All conditions are satisfied, castling is allowed
+        return True
+
+    def can_castle_queenside(self, player):
+        # Check if the king and the queenside rook are in their initial positions
+        king_start_square = self.squares['e1'] if player == self.WHITE else self.squares['e8']
+        rook_start_square = self.squares['a1'] if player == self.WHITE else self.squares['a8']
+        if self.get_piece_on_square(king_start_square) != self.KING or self.get_piece_on_square(
+                rook_start_square) != self.ROOK:
+            return False
+
+        # Check if there are no pieces between the king and the rook
+        squares_between = [self.squares['b1'], self.squares['c1'], self.squares['d1']] if player == self.WHITE else [
+            self.squares['b8'], self.squares['c8'], self.squares['d8']]
+        if any(self.get_piece_on_square(square) is not None for square in squares_between):
+            return False
+
+        # Check if the king is not in check and does not pass through attacked squares
+
+
+        # All conditions are satisfied, castling is allowed
+        return True
 
     def generate_knight_moves(self, square):
         if isinstance(square, str):
