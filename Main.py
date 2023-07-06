@@ -531,6 +531,12 @@ class BitboardChess:
 
         return moves
 
+    def generate_queen_moves(self, square):
+        moves = []
+        moves += self.generate_bishop_moves(square)
+        moves += self.generate_rook_moves(square)
+        return moves
+
 
     def get_square_name(self, square):
 
@@ -612,6 +618,10 @@ pawnm_double_black = chess.generate_pawn_moves('f7')
 print(pawnm_double_black)
 pawnm_capture_black = chess.generate_pawn_moves('e6')
 print(pawnm_capture_black)
+
+print("Queen Moves:")
+queanmoves = chess.generate_queen_moves('d4')
+print(queanmoves)
 #problem: it adds: 
 #square  e7  added
 #square  d6  added  # where is c5?
