@@ -88,10 +88,6 @@ class BitboardChess:
         else:
             opponent = self.WHITE
 
-        # Check if the move is legal
-        if not self.is_legal_move(piece, from_square, to_square):
-            raise ValueError("Illegal move.")
-
         # Make the move
         self.move_piece(piece, from_square, to_square)
 
@@ -112,85 +108,6 @@ class BitboardChess:
             if self.is_piece_on_square(opponent, square):
                 self.piece_bitboards[opponent][piece] &= ~self.squares[square]
                 break
-
-    def is_legal_move(self, piece, from_square, to_square):
-        # Check if the piece is allowed to move from the source square
-        if not self.is_piece_on_square(self.current_player, from_square):
-            return False
-
-        # Check if the destination square is occupied by the current player's piece
-        if self.is_piece_on_square(self.current_player, to_square):
-            return False
-
-        # Check specific rules for each piece
-        if piece == self.PAWN:
-            return self.is_legal_pawn_move(from_square, to_square)
-        elif piece == self.KNIGHT:
-            return self.is_legal_knight_move(from_square, to_square)
-        elif piece == self.BISHOP:
-            return self.is_legal_bishop_move(from_square, to_square)
-        elif piece == self.ROOK:
-            return self.is_legal_rook_move(from_square, to_square)
-        elif piece == self.QUEEN:
-            return self.is_legal_queen_move(from_square, to_square)
-        elif piece == self.KING:
-            return self.is_legal_king_move(from_square, to_square)
-
-    def is_legal_pawn_move(self, from_square, to_square):
-        from_bb = self.squares[from_square]
-        to_bb = self.squares[to_square]
-
-        if self.current_player == self.WHITE:
-            direction = 1
-            starting_rank = 2
-            en_passant_rank = 5
-        else:
-            direction = -1
-            starting_rank = 7
-            en_passant_rank = 4
-
-
-        if to_bb & shift(from_bb , 8*direction):  # Single move forward
-                return True
-
-
-        elif from_square[1] == str(starting_rank) and to_bb & shift(from_bb , 16 * direction):  # Double move forward
-            return True
-        elif (to_bb & shift(from_bb , 7 * direction)) and (to_square[0] != 'h'):  # Capture to the left
-            return True
-        elif (to_bb & shift(from_bb , 9 * direction)) and (to_square[0] != 'a'):  # Capture to the right
-            return True
-        elif (to_bb & shift(from_bb , 7 * direction)) and (to_square[1] == str(en_passant_rank)):
-            return True
-        elif (to_bb & shift(from_bb , 9 * direction)) and (to_square[1] == str(en_passant_rank)):
-            return True
-
-        return False
-
-    def is_legal_knight_move(self, from_square, to_square):
-        from_bb = self.squares[from_square]
-        to_bb = self.squares[to_square]
-        valid_moves = (
-                (from_bb << 6) | (from_bb >> 10) |
-                (from_bb << 10) | (from_bb >> 6) |
-                (from_bb << 15) | (from_bb >> 17) |
-                (from_bb << 17) | (from_bb >> 15)
-        )
-        return bool(to_bb & valid_moves)
-
-    def is_legal_queen_move(self, from_square, to_square):
-        return self.is_legal_bishop_move(from_square, to_square) or self.is_legal_rook_move(from_square, to_square)
-
-    def is_legal_king_move(self, from_square, to_square):
-        from_bb = self.squares[from_square]
-        to_bb = self.squares[to_square]
-        valid_moves = (
-                from_bb << 1 | from_bb >> 1 |
-                from_bb << 8 | from_bb >> 8 |
-                from_bb << 9 | from_bb >> 9 |
-                from_bb << 7 | from_bb >> 7
-        )
-        return bool(to_bb & valid_moves)
 
     def is_piece_on_square(self, player, square):
         square_bb = self.squares[square]
@@ -419,6 +336,8 @@ class BitboardChess:
                 continue
 
             moves.append((self.get_square_name(square), dest_square_char))
+
+
         return moves
     
     def generate_rook_moves(self, square):
@@ -437,6 +356,8 @@ class BitboardChess:
             while True:
                 dest_square = shift(dest_square, direction)
                 dest_square_char = self.get_square_name(dest_square)
+                if dest_square_char is None:
+                    break
                 if dest_square_char[0] == 'a' and direction == -1:
                     if self.is_piece_on_square(self.current_player, dest_square_char):
                         break  # Reached own piece, cannot move further
@@ -492,7 +413,8 @@ class BitboardChess:
             while True:
                 dest_square = shift(dest_square, direction)
                 dest_square_char = self.get_square_name(dest_square)
-
+                if dest_square_char is None:
+                    break
                 if dest_square_char[0] == 'a' and (direction == 7 or direction == -9):
                     if self.is_piece_on_square(self.current_player, dest_square_char):
                         break  # Reached own piece, cannot move further
@@ -537,9 +459,7 @@ class BitboardChess:
         moves += self.generate_rook_moves(square)
         return moves
 
-
     def get_square_name(self, square):
-
         for name, value in self.squares.items():
             if square & value:
                 return name
@@ -554,8 +474,53 @@ class BitboardChess:
         else:
             raise ValueError("Invalid color value.")
 
+    def generate_all_moves(self):
+        moves = []
+        for piece in self.piece_bitboards[self.current_player]:
+            if piece == self.EMPTY:
+                continue
+            piece_moves = self.generate_piece_moves(piece)
+            moves += piece_moves
+        return moves
+
+    def generate_piece_moves(self, piece):
+        squares = self.get_piece_squares(piece)
+        moves = []
+        if piece == self.PAWN:
+            for square in squares:
+                moves += self.generate_pawn_moves(square)
+            return moves
+        elif piece == self.KNIGHT:
+            for square in squares:
+                moves += self.generate_knight_moves(square)
+            return moves
+        elif piece == self.BISHOP:
+            for square in squares:
+                moves += self.generate_bishop_moves(square)
+            return moves
+        elif piece == self.ROOK:
+            for square in squares:
+                moves += self.generate_rook_moves(square)
+            return moves
+        elif piece == self.QUEEN:
+            for square in squares:
+                moves += self.generate_queen_moves(square)
+            return moves
+        elif piece == self.KING:
+            for square in squares:
+                moves += self.generate_king_moves(square)
+            return moves
+
+    def get_piece_squares(self, piece):
+        squares = []
+        bitboard = self.piece_bitboards[self.current_player][piece]
+        for square in self.squares:
+            if bitboard & self.squares[square] != 0:
+                squares.append(square)
+        return squares
+
 chess = BitboardChess()
-fen = 'rnbqkbnr/pppppppp/8/pB6/3K4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
+fen = 'rnbqkbnr/pppppppp/8/pB6/3N4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
 chess.load_from_fen(fen)
 chess.print_board()
 print(chess.get_piece_on_square('b2'))
@@ -622,6 +587,9 @@ print(pawnm_capture_black)
 print("Queen Moves:")
 queanmoves = chess.generate_queen_moves('d4')
 print(queanmoves)
+print(chess.get_piece_on_square('d4'))
+print(chess.generate_all_moves())
+
 #problem: it adds: 
 #square  e7  added
 #square  d6  added  # where is c5?
