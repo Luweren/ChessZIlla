@@ -199,6 +199,9 @@ class BitboardChess:
         if square in self.squares:
             self.piece_bitboards[player][piece] |= self.squares[square]
 
+    def attacked_square(self, move):
+        return move[1]
+
     def generate_king_moves(self, square):
         if isinstance(square, str):
             square = self.squares[square]
@@ -234,51 +237,61 @@ class BitboardChess:
             moves.append((self.get_square_name(square), dest_square_char))
 
             # Check for castling moves
+
         if self.can_castle_kingside(self.current_player):
-                kingside_dest = self.squares['g1'] if self.current_player == self.WHITE else self.squares['g8']
-                moves.append((self.get_square_name(square), self.get_square_name(kingside_dest)))
+            kingside_dest = self.squares['g1'] if self.current_player == self.WHITE else self.squares['g8']
+            moves.append((self.get_square_name(square), self.get_square_name(kingside_dest)))
 
         if self.can_castle_queenside(self.current_player):
-                queenside_dest = self.squares['c1'] if self.current_player == self.WHITE else self.squares['c8']
-                moves.append((self.get_square_name(square), self.get_square_name(queenside_dest)))
+            queenside_dest = self.squares['c1'] if self.current_player == self.WHITE else self.squares['c8']
+            moves.append((self.get_square_name(square), self.get_square_name(queenside_dest)))
 
         return moves
 
     def can_castle_kingside(self, player):
         # Check if the king and the kingside rook are in their initial positions
-        king_start_square = self.squares['e1'] if player == self.WHITE else self.squares['e8']
-        rook_start_square = self.squares['h1'] if player == self.WHITE else self.squares['h8']
+        king_start_square = 'e1' if player == self.WHITE else 'e8'
+        rook_start_square = 'h1' if player == self.WHITE else 'h8'
         if self.get_piece_on_square(king_start_square) != self.KING or self.get_piece_on_square(
                 rook_start_square) != self.ROOK:
             return False
 
         # Check if there are no pieces between the king and the rook
-        squares_between = [self.squares['f1'], self.squares['g1']] if player == self.WHITE else [self.squares['f8'],
-                                                                                                 self.squares['g8']]
+        squares_between = ['f1', 'g1'] if player == self.WHITE else ['f8', 'g8']
         if any(self.get_piece_on_square(square) is not None for square in squares_between):
             return False
 
         # Check if the king is not in check and does not pass through attacked squares
+        squares_attacked = ['f1', 'g1'] if player == self.WHITE else ['f8','g8']
 
+        for move in self.generate_all_opponent_moves():
+            if self.attacked_square(move) in squares_attacked:
+                return False
 
         # All conditions are satisfied, castling is allowed
         return True
 
     def can_castle_queenside(self, player):
         # Check if the king and the queenside rook are in their initial positions
-        king_start_square = self.squares['e1'] if player == self.WHITE else self.squares['e8']
-        rook_start_square = self.squares['a1'] if player == self.WHITE else self.squares['a8']
+        king_start_square = 'e1' if player == self.WHITE else 'e8'
+        rook_start_square = 'a1' if player == self.WHITE else 'a8'
         if self.get_piece_on_square(king_start_square) != self.KING or self.get_piece_on_square(
                 rook_start_square) != self.ROOK:
             return False
 
         # Check if there are no pieces between the king and the rook
-        squares_between = [self.squares['b1'], self.squares['c1'], self.squares['d1']] if player == self.WHITE else [
-            self.squares['b8'], self.squares['c8'], self.squares['d8']]
+        squares_between = ['b1', 'c1', 'd1'] if player == self.WHITE else [
+           'b8','c8','d8']
         if any(self.get_piece_on_square(square) is not None for square in squares_between):
             return False
 
         # Check if the king is not in check and does not pass through attacked squares
+        squares_attacked = ['c1','d1'] if player == self.WHITE else [
+           'c8', 'd8']
+
+        for move in self.generate_all_opponent_moves():
+            if self.attacked_square(move) in squares_attacked:
+                return False
 
 
         # All conditions are satisfied, castling is allowed
@@ -523,13 +536,18 @@ class BitboardChess:
         else:
             raise ValueError("Invalid color value.")
 
-    def generate_all_moves(self):
+    def generate_all_player_moves(self):
         moves = []
         for piece in self.piece_bitboards[self.current_player]:
             if piece == self.EMPTY:
                 continue
             piece_moves = self.generate_piece_moves(piece)
             moves += piece_moves
+        return moves
+    def generate_all_opponent_moves(self):
+        self.current_player = self.get_opponent(self.current_player )
+        moves = self.generate_all_player_moves()
+        self.current_player = self.get_opponent(self.current_player )
         return moves
 
     def generate_piece_moves(self, piece):
@@ -569,7 +587,7 @@ class BitboardChess:
         return squares
 
 chess = BitboardChess()
-fen = 'rnbqkbnr/pppppppp/8/pB6/3N4/8/PPPPPPPP/RNBQKBNR w - - 0 1'
+fen = 'rnbqkbnr/pppppppp/8/pB6/3N4/8/PPPPPPPP/RN2KBNR w - - 0 1'
 chess.load_from_fen(fen)
 chess.print_board()
 print(chess.get_piece_on_square('b2'))
@@ -624,7 +642,7 @@ pawnm_nomove = chess.generate_pawn_moves('d3')
 print(pawnm_nomove)
 
 #changing side
-chess.make_move('a2','a3')
+
 print("testing black pawn moves")
 pawnm_single_black = chess.generate_pawn_moves('d7')
 print(pawnm_single_black)
@@ -634,10 +652,11 @@ pawnm_capture_black = chess.generate_pawn_moves('e6')
 print(pawnm_capture_black)
 
 print("Queen Moves:")
-queanmoves = chess.generate_queen_moves('d4')
+queanmoves = chess.generate_king_moves('e1')
 print(queanmoves)
 print(chess.get_piece_on_square('d4'))
-print(chess.generate_all_moves())
+print(chess.generate_all_player_moves())
+print(chess.generate_all_opponent_moves())
 
 #problem: it adds: 
 #square  e7  added
