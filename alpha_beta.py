@@ -1,5 +1,5 @@
 import Main as main
-import random
+import evaluate
 
 
 #https://www.chessprogramming.org/Minimax
@@ -13,7 +13,7 @@ def minmax_get_best_move(bitboard:main.BitboardChess, depthleft):
 
 def alphaBetaMax(alpha, beta, depthleft, bitboard:main.BitboardChess):
     if depthleft == 0:
-        return random.randint(1,10)   #evaluate(bitboard)
+        return evaluate.evaluate_board(bitboard,'white')  #'white' should be changed to a player that will be defined and given to the alphaBetaMax in the playing game function 
     
     moves = bitboard.generate_all_player_moves()
     for move in moves:
@@ -31,7 +31,7 @@ def alphaBetaMax(alpha, beta, depthleft, bitboard:main.BitboardChess):
 
 def alphaBetaMin(alpha, beta, depthleft, bitboard:main.BitboardChess):
     if depthleft == 0:
-        return random.randint(-10,-1)
+        return evaluate.evaluate_board(bitboard,'white')  #'white' should be changed to a player that will be defined and given to the alphaBetaMax in the playing game function 
     
     moves = bitboard.generate_all_player_moves()
     for move in moves:
