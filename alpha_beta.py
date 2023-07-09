@@ -1,7 +1,7 @@
-import Main as main
 import evaluate
-
-
+import Main as main
+import pickle
+import copy
 #https://www.chessprogramming.org/Minimax
 #https://www.chessprogramming.org/Alpha-Beta
 
@@ -9,39 +9,43 @@ import evaluate
 def minmax_get_best_move(bitboard:main.BitboardChess, depthleft):
 
     score = alphaBetaMax((float('-inf'), ('a2','a3')), (float('inf'), ('a7','a6')), depthleft, bitboard)
-    return score[1]
+    return score
 
 def alphaBetaMax(alpha, beta, depthleft, bitboard:main.BitboardChess):
     if depthleft == 0:
-        return evaluate.evaluate_board(bitboard,'white')  #'white' should be changed to a player that will be defined and given to the alphaBetaMax in the playing game function 
+        return (evaluate.evaluate_board(bitboard,'white'),alpha[1])  #'white' should be changed to a player that will be defined and given to the alphaBetaMax in the playing game function 
     
     moves = bitboard.generate_all_player_moves()
     for move in moves:
-        temp_bitboard = bitboard    #hope it works without deepcopy
-        bitboard.make_move(move)
+        #temp_bitboard = pickle.dumps(bitboard)    #hope it works without deepcopy
+        temp_bitboard = copy.deepcopy(bitboard)
+        bitboard.make_move(move[0],move[1])
         score = alphaBetaMin(alpha, beta, depthleft-1, temp_bitboard)
-        #alpha := (alpha_val, alpha_move)
-        #beta := (beta_val, beta_move)
+        #alpha := (alpha_eval, alpha_move)
+        #beta := (beta_eval, beta_move)
         if score[0] >= beta[0]:
-            return beta
+            return (beta[0], beta[1])   #previously just return beta
         if score[0] > alpha[0]:
-            alpha = (score[0], move)
+            alpha = (score[0], (move[0],move[1]))
 
-    return alpha
+    return (alpha[0],alpha[1])
 
 def alphaBetaMin(alpha, beta, depthleft, bitboard:main.BitboardChess):
     if depthleft == 0:
-        return evaluate.evaluate_board(bitboard,'white')  #'white' should be changed to a player that will be defined and given to the alphaBetaMax in the playing game function 
+        return (evaluate.evaluate_board(bitboard,'white'), beta[1])
     
     moves = bitboard.generate_all_player_moves()
     for move in moves:
-        temp_bitboard = bitboard       #hope it works without deepcopy
-        bitboard.make_move(move)
+        #temp_bitboard = pickle.dumps(bitboard)       #hope it works without deepcopy
+        temp_bitboard = copy.deepcopy(bitboard)
+        bitboard.make_move(move[0], move[1])
         score = alphaBetaMax(alpha, beta, depthleft-1, temp_bitboard)
-        #alpha := (alpha_val, alpha_move)
-        #beta := (beta_val, beta_move)
+        #alpha := (alpha_eval, alpha_move)
+        #beta := (beta_eval, beta_move)
         if score[0] <= alpha[0]:
-            return alpha
+            return (alpha[0],alpha[1])
         if score[0] < beta[0]:
-            beta = (score[0], move)
-    return beta
+            beta = (score[0], (move[0], move[1]))
+    return (beta[0],beta[1])
+
+
