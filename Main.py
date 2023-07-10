@@ -233,7 +233,8 @@ class BitboardChess:
             
             dest_square = shift(from_square, direction)
             dest_square_char = self.get_square_name(dest_square)
-
+            if dest_square_char is None:
+                continue
             if self.is_piece_on_square(self.current_player, dest_square_char):
                 continue
 
@@ -338,7 +339,8 @@ class BitboardChess:
 
             dest_square = shift(from_square, direction)
             dest_square_char = self.get_square_name(dest_square)
-
+            if dest_square_char is None:
+                continue
             if self.is_piece_on_square(self.current_player, dest_square_char):
                 continue
 
@@ -362,6 +364,7 @@ class BitboardChess:
             from_square = square
             from_square_char = self.get_square_name(from_square)
 
+
             #checking edges of the board
             if from_square_char[0] == 'a' and ((direction == 7) or (direction == -9)):
                 continue
@@ -371,6 +374,8 @@ class BitboardChess:
 
             dest_square = shift(from_square, direction)
             dest_square_char = self.get_square_name(dest_square)
+            if dest_square_char is None:
+                continue
             #vertical movement
             #while we go vertical on the board we always check the square in front of us
             if direction == 8 or direction == 16 or direction == -8 or direction == -16:  # if direction % 8 == 0: 
