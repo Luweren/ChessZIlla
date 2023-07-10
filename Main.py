@@ -594,6 +594,14 @@ class BitboardChess:
                 squares.append(square)
         return squares
 
+    def get_piece_squares_according_to_player(self, piece, player):
+        squares = []
+        bitboard = self.piece_bitboards[player][piece]
+        for square in self.squares:
+            if bitboard & self.squares[square] != 0:
+                squares.append(square)
+        return squares
+
 chess = BitboardChess()
 fen = 'rnbqkbnr/pppppppp/8/pB6/3N4/8/PPPPPPPP/RN2KBNR w - - 0 1'
 chess.load_from_fen(fen)
