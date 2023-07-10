@@ -5,6 +5,34 @@ import numpy as np
 #more general bitboards: bitboard_white_knights = bitboard_white_pieces & bitboard_knights
 #it might be faster
 
+A1, B1, C1, D1, E1, F1, G1, H1 = range(8)
+A2, B2, C2, D2, E2, F2, G2, H2 = range(8, 16)
+A3, B3, C3, D3, E3, F3, G3, H3 = range(16, 24)
+A4, B4, C4, D4, E4, F4, G4, H4 = range(24, 32)
+A5, B5, C5, D5, E5, F5, G5, H5 = range(32, 40)
+A6, B6, C6, D6, E6, F6, G6, H6 = range(40, 48)
+A7, B7, C7, D7, E7, F7, G7, H7 = range(48, 56)
+A8, B8, C8, D8, E8, F8, G8, H8 = range(56, 64)
+
+squares = {
+        'a1': 1 << A1, 'b1': 1 << B1, 'c1': 1 << C1, 'd1': 1 << D1,
+        'e1': 1 << E1, 'f1': 1 << F1, 'g1': 1 << G1, 'h1': 1 << H1,
+        'a2': 1 << A2, 'b2': 1 << B2, 'c2': 1 << C2, 'd2': 1 << D2,
+        'e2': 1 << E2, 'f2': 1 << F2, 'g2': 1 << G2, 'h2': 1 << H2,
+        'a3': 1 << A3, 'b3': 1 << B3, 'c3': 1 << C3, 'd3': 1 << D3,
+        'e3': 1 << E3, 'f3': 1 << F3, 'g3': 1 << G3, 'h3': 1 << H3,
+        'a4': 1 << A4, 'b4': 1 << B4, 'c4': 1 << C4, 'd4': 1 << D4,
+        'e4': 1 << E4, 'f4': 1 << F4, 'g4': 1 << G4, 'h4': 1 << H4,
+        'a5': 1 << A5, 'b5': 1 << B5, 'c5': 1 << C5, 'd5': 1 << D5,
+        'e5': 1 << E5, 'f5': 1 << F5, 'g5': 1 << G5, 'h5': 1 << H5,
+        'a6': 1 << A6, 'b6': 1 << B6, 'c6': 1 << C6, 'd6': 1 << D6,
+        'e6': 1 << E6, 'f6': 1 << F6, 'g6': 1 << G6, 'h6': 1 << H6,
+        'a7': 1 << A7, 'b7': 1 << B7, 'c7': 1 << C7, 'd7': 1 << D7,
+        'e7': 1 << E7, 'f7': 1 << F7, 'g7': 1 << G7, 'h7': 1 << H7,
+        'a8': 1 << A8, 'b8': 1 << B8, 'c8': 1 << C8, 'd8': 1 << D8,
+        'e8': 1 << E8, 'f8': 1 << F8, 'g8': 1 << G8, 'h8': 1 << H8
+    }
+
 #our indexing of the chess board is different in this run that is why piece square tables switched collors   so previous early_game_pawn_black is now early_game_pawn_white 
 early_game_pawn_white = np.array([
     0,	0,	0,	0,	0,	 0,	0,	0,
@@ -318,8 +346,42 @@ def get_square_table(player):   #needs to be extended with mg_tables
     elif player == 'black':
         return eg_tables_black
 
-
 def evaluate_position(bb_for_position:main.BitboardChess, player):
+    pos_value = 0
+    side = 0
+    if player == 'white':
+        side = 1
+    if player == 'black':
+        side =-1 
+
+    bitboards_of_current_pieces =bb_for_position.piece_bitboards["white"]
+    for piece in bitboards_of_current_pieces:
+        piece_squares = bb_for_position.get_piece_squares_according_to_player(piece,'white')
+        added_pos_value = evaluate_position_of_a_piece_art(piece_squares, get_square_table('white')[piece])  
+        pos_value += added_pos_value
+    
+    bitboards_of_oponent_pieces  = bb_for_position.piece_bitboards["black"] 
+    for piece in bitboards_of_oponent_pieces:
+        piece_squares_black = bb_for_position.get_piece_squares_according_to_player(piece,"black")
+        added_black_pos_value = evaluate_position_of_a_piece_art(piece_squares_black, get_square_table('black')[piece])  
+        pos_value -= added_black_pos_value
+
+    return pos_value*side
+
+def evaluate_position_of_a_piece_art(pieces, piece_square_table):
+    evaluation = 0
+    #example of pieces: ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2']
+    if not pieces:
+        return 0
+    
+    for piece in pieces:
+        index = int(np.log2(squares[piece]))
+        evaluation += piece_square_table[index]
+
+    return evaluation
+
+
+def evaluate_position1(bb_for_position:main.BitboardChess, player):     #old version
     pos_value = 0
     side = 0
     if player == 'white':
@@ -341,7 +403,7 @@ def evaluate_position(bb_for_position:main.BitboardChess, player):
 
 
 
-def evaluate_position_of_a_piece_art(pieces, piece_square_table):
+def evaluate_position_of_a_piece_art1(pieces, piece_square_table):
     evaluation = 0
     while pieces != 0:
         square = pieces & -pieces  # Get the least significant set bit         #having pieces = 0b1010 and applying & -pieces => we will get square = 0b10  => the next stored piece in the bitboard
@@ -389,11 +451,26 @@ def evaluate_material(bb_material:main.BitboardChess, player):
 #    return material_value
 
 chess1 = main.BitboardChess()
+print("testing new eval")
+chess1.print_board()
+print("the whole eval: ", evaluate_position(chess1, 'white'))
+
+chess1.make_move("b1","c3")
+chess1.print_board()
+print("the whole eval: ",evaluate_position(chess1, 'white'))
+
+chess1.make_move("d7","d5")
+chess1.print_board()
+print("the whole eval: ",evaluate_position(chess1, 'white'))
+
+chess1.make_move("f2","f3")
+chess1.print_board()
+print("the whole eval: ",evaluate_position(chess1, 'white'))
 
 #chess1.load_from_fen('rnbqkbnr/pppppppp/8/pB6/3N4/8/PPPPPPPP/RN2KBNR w - - 0 1')
-chess1.print_board()
-chess1.make_move('e2','e4')
-print(evaluate_material(chess1,'white'))
-print(evaluate_position(chess1, 'white'))
-print(evaluate_board(chess1,'white'))
-print(evaluate_board(chess1, 'black'))
+#chess1.print_board()
+#chess1.make_move('e2','e4')
+#print(evaluate_material(chess1,'white'))
+#print(evaluate_position(chess1, 'white'))
+#print(evaluate_board(chess1,'white'))
+#print(evaluate_board(chess1, 'black'))
