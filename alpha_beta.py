@@ -19,7 +19,7 @@ def alphaBetaMax(alpha, beta, depthleft, bitboard:main.BitboardChess):
     for move in moves:
         #temp_bitboard = pickle.dumps(bitboard)    #hope it works without deepcopy
         temp_bitboard = copy.deepcopy(bitboard)
-        bitboard.make_move(move[0],move[1])
+        temp_bitboard.make_move(move[0],move[1])
         score = alphaBetaMin(alpha, beta, depthleft-1, temp_bitboard)
         #alpha := (alpha_eval, alpha_move)
         #beta := (beta_eval, beta_move)
@@ -38,7 +38,7 @@ def alphaBetaMin(alpha, beta, depthleft, bitboard:main.BitboardChess):
     for move in moves:
         #temp_bitboard = pickle.dumps(bitboard)       #hope it works without deepcopy
         temp_bitboard = copy.deepcopy(bitboard)
-        bitboard.make_move(move[0], move[1])
+        temp_bitboard.make_move(move[0], move[1])
         score = alphaBetaMax(alpha, beta, depthleft-1, temp_bitboard)
         #alpha := (alpha_eval, alpha_move)
         #beta := (beta_eval, beta_move)

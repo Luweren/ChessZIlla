@@ -1,3 +1,6 @@
+
+
+
 def shift(bitboard, value):
     if value < 0:
         # Convert negative left value to positive right value
@@ -650,14 +653,12 @@ pawnm_double_black = chess.generate_pawn_moves('f7')
 print(pawnm_double_black)
 pawnm_capture_black = chess.generate_pawn_moves('e6')
 print(pawnm_capture_black)
-
 print("Queen Moves:")
 queanmoves = chess.generate_king_moves('e1')
 print(queanmoves)
 print(chess.get_piece_on_square('d4'))
 print(chess.generate_all_player_moves())
 print(chess.generate_all_opponent_moves())
-
 #problem: it adds: 
 #square  e7  added
 #square  d6  added  # where is c5?
