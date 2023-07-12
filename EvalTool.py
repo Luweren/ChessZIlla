@@ -11,8 +11,8 @@ def main_loop(bitboard:Main.BitboardChess, board_fen,depth):
         best_move = alpha_beta.minmax_get_best_move(bitboard,depth)
         bitboard.make_move(best_move[1][0],best_move[1][1])
         bitboard.print_board()
-        print("Eval für Spieler: " + chess.current_player)
-        print(evaluate.evaluate_board(chess, chess.current_player))
+        print("Eval für Spieler: " + bitboard.current_player)
+        print(evaluate.evaluate_board(bitboard, bitboard.current_player))
         inp = input(" ")
 
 
