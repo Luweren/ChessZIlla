@@ -3,11 +3,11 @@ import random
 import time
 from math import log,sqrt,e,inf
 import pickle
+import evaluate
 
 class node():
     def __init__(self):
         self.state = main.BitboardChess()
-        self.action = ''                        #????????????
         self.children = set()
         self.parent = None
         self.N = 0
@@ -15,13 +15,15 @@ class node():
         self.v = 0
 
 def ucb1(curr_node):
-    value = curr_node.v + 2*(sqrt(log(curr_node.N +e+(10**-6))/(curr_node.n+(10**-10))))   #compare it to the original formula
+    value = curr_node.v + 2*(sqrt(log(curr_node.N +e+(10**-6))/(curr_node.n+(10**-10))))   #idk why we need e. without e the program throws a math domain error
     return value
 
-def rollout(curr_node):
+def rollout(curr_node:node, depth):
     #if(curr_node.state)     ## check the original code
-    if(curr_node.state.is_game_over()):
-        return(1,curr_node)    # instead of 1 evaluate.evaluate_board(curr_node.state)
+    #if(curr_node.state.is_game_over()):   #needs to be implemented
+    #    return(10000,curr_node)    # instead of 1 evaluate.evaluate_board(curr_node.state)
+    if depth == 0:
+        return (evaluate.evaluate_board(curr_node.state,"white"),curr_node)
     all_moves = curr_node.state.generate_all_player_moves()
     copy_state = pickle.dumps(curr_node.state)
     for move in all_moves:
@@ -32,7 +34,7 @@ def rollout(curr_node):
         child.parent = curr_node
         curr_node.children.add(child)
     rnd_state = random.choice(list(curr_node.children))
-    return rollout(rnd_state)  # does not work, because we do not play till the end
+    return rollout(rnd_state, depth-1)  # does not work, because we do not play till the end
 
 def expand(curr_node:node, color):
     if(len(curr_node.children)==0):
@@ -73,11 +75,11 @@ def rollback(curr_node, reward):
     return curr_node
 
 
-def mcts(curr_node:node, over, color, iterations=10):
+def mcts(curr_node:node, over, color, iterations=10, depth=30):
 
     if over:
         return -1
-    all_moves = curr_node.state.generate_all_player_moves
+    all_moves = curr_node.state.generate_all_player_moves()
     map_state_move = dict()
 
     copy_state = pickle.dumps(curr_node.state)
@@ -102,7 +104,7 @@ def mcts(curr_node:node, over, color, iterations=10):
                     max_ucb = tmp
                     sel_child = i
             ex_child = expand(sel_child,"black")
-            reward, state = rollout(ex_child)
+            reward, state = rollout(ex_child,depth)
             curr_node = rollback(state,reward)
             iterations -=1
         else:
@@ -116,7 +118,7 @@ def mcts(curr_node:node, over, color, iterations=10):
                     min_ucb = tmp
                     sel_child = i
             ex_child = expand(sel_child,"white")
-            reward, state = rollout(ex_child)
+            reward, state = rollout(ex_child, depth)
             curr_node = rollback(state,reward)
             iterations -= 1
     if(color == "white"):
@@ -127,11 +129,7 @@ def mcts(curr_node:node, over, color, iterations=10):
             tmp = ucb1(k)
             if tmp > mx:
                 mx = tmp
-                selcted_move = map_state_move[i]
+                selcted_move = map_state_move[k]
         return selcted_move
     
     #continue from 160th line of the original code in github
-            
-
-
-            
