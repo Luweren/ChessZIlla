@@ -79,6 +79,7 @@ class BitboardChess:
 
         self.current_player = self.WHITE
         self.king_check = False
+        self.over = False
 
     def get_king_check(self):
         self.king_check = True
@@ -108,6 +109,7 @@ class BitboardChess:
         else:
             opponent = self.WHITE
 
+        tempstate = self.get_king_check()
         # Make the move
         self.move_piece(piece, from_square, to_square)
 
@@ -120,7 +122,12 @@ class BitboardChess:
         #check for check after move
         if self.get_king_check():
             print("CHECK")
+            if tempstate == self.get_king_check():
+                self.over = True
+                print("MATE")
             return 0
+
+
 
         # Switch players
         self.current_player = opponent
@@ -151,6 +158,9 @@ class BitboardChess:
                 if self.piece_bitboards[player][piece] & self.squares[square]:
                     return piece
         return None
+
+    def game_over(self):
+        return self.over
 
 
     def print_board(self):

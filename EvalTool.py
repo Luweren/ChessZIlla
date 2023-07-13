@@ -34,7 +34,7 @@ shannon = [20, 400, 8902, 197281, 4865609]\
 #chess.make_move('a1', 'a2')
 
 chess.print_board()
-print(monte_carlo.mcts(chess,0,chess.current_player))
+print(monte_carlo.mcts(chess,0,chess.current_player,10,200))
 """
 for i in range(5):
     inp = input("")

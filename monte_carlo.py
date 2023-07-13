@@ -20,10 +20,10 @@ def ucb1(curr_node):
 
 def rollout(curr_node:node, depth):
     #if(curr_node.state)     ## check the original code
-    #if(curr_node.state.is_game_over()):   #needs to be implemented
-    #    return(10000,curr_node)    # instead of 1 evaluate.evaluate_board(curr_node.state)
-    if depth == 0:
-        return (evaluate.evaluate_board(curr_node.state,"white"),curr_node)
+    if(curr_node.state.game_over()):   #needs to be implemented
+        return(1,curr_node)    # instead of 1 evaluate.evaluate_board(curr_node.state)
+    #if depth == 0:
+     #   return (evaluate.evaluate_board(curr_node.state,"white"),curr_node)
     all_moves = curr_node.state.generate_all_player_moves()
     copy_state = pickle.dumps(curr_node.state)
     for move in all_moves:
