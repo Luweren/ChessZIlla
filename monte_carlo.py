@@ -6,8 +6,8 @@ import pickle
 import evaluate
 
 class node():
-    def __init__(self):
-        self.state = main.BitboardChess()
+    def __init__(self, chess):
+        self.state = chess
         self.children = set()
         self.parent = None
         self.N = 0
@@ -29,8 +29,7 @@ def rollout(curr_node:node, depth):
     for move in all_moves:
         tmp_state = pickle.loads(copy_state)
         tmp_state.make_move(move[0],move[1])
-        child = node()
-        child.state = tmp_state
+        child = node(tmp_state)
         child.parent = curr_node
         curr_node.children.add(child)
     rnd_state = random.choice(list(curr_node.children))
@@ -75,8 +74,8 @@ def rollback(curr_node, reward):
     return curr_node
 
 
-def mcts(curr_node:node, over, color, iterations=10, depth=30):
-
+def mcts(chess, over, color, iterations=10, depth=30):
+    curr_node = node(chess)
     if over:
         return -1
     all_moves = curr_node.state.generate_all_player_moves()
@@ -86,8 +85,7 @@ def mcts(curr_node:node, over, color, iterations=10, depth=30):
     for move in all_moves:
         tmp_state = pickle.loads(copy_state)
         tmp_state.make_move(move[0], move[1])   #why does it not autocomplete while i am writing make_move() does it not recognize tmp_state as BitboardChess?
-        child = node()
-        child.state = tmp_state
+        child = node(tmp_state)
         child.parent = curr_node
         curr_node.children.add(child)
         map_state_move[child] = move
@@ -132,4 +130,3 @@ def mcts(curr_node:node, over, color, iterations=10, depth=30):
                 selcted_move = map_state_move[k]
         return selcted_move
     
-    #continue from 160th line of the original code in github
