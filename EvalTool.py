@@ -34,7 +34,8 @@ shannon = [20, 400, 8902, 197281, 4865609]\
 #chess.make_move('a1', 'a2')
 
 chess.print_board()
-
+print(monte_carlo.mcts(chess,0,chess.current_player))
+"""
 for i in range(5):
     inp = input("")
     timer = time.time()
@@ -46,4 +47,4 @@ for i in range(5):
     print("Time:" + str(time.time() - timer))
 
     chess.print_board()
-
+"""

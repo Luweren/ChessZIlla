@@ -231,7 +231,7 @@ class BitboardChess:
     def attacked_square(self, move):
         return move[1]
 
-    def generate_king_moves(self, square):
+    def generate_king_moves(self, square, player):
         if isinstance(square, str):
             square = self.squares[square]
         
@@ -268,18 +268,18 @@ class BitboardChess:
             moves.append((self.get_square_name(square), dest_square_char))
 
             # Check for castling moves
+        if player:
+            if self.can_castle_kingside(self.current_player):
+                kingside_dest = self.squares['g1'] if self.current_player == self.WHITE else self.squares['g8']
 
-        if self.can_castle_kingside(self.current_player):
-            kingside_dest = self.squares['g1'] if self.current_player == self.WHITE else self.squares['g8']
+
+                moves.append((self.get_square_name(square), self.get_square_name(kingside_dest)))
+
+            if self.can_castle_queenside(self.current_player):
+                queenside_dest = self.squares['c1'] if self.current_player == self.WHITE else self.squares['c8']
 
 
-            moves.append((self.get_square_name(square), self.get_square_name(kingside_dest)))
-
-        if self.can_castle_queenside(self.current_player):
-            queenside_dest = self.squares['c1'] if self.current_player == self.WHITE else self.squares['c8']
-            
-
-            moves.append((self.get_square_name(square), self.get_square_name(queenside_dest)))
+                moves.append((self.get_square_name(square), self.get_square_name(queenside_dest)))
 
         return moves
 
@@ -570,16 +570,21 @@ class BitboardChess:
         for piece in self.piece_bitboards[self.current_player]:
             if piece == self.EMPTY:
                 continue
-            piece_moves = self.generate_piece_moves(piece)
+            piece_moves = self.generate_piece_moves(piece, True)
             moves += piece_moves
         return moves
     def generate_all_opponent_moves(self):
         self.current_player = self.get_opponent(self.current_player )
-        moves = self.generate_all_player_moves()
+        moves = []
+        for piece in self.piece_bitboards[self.current_player]:
+            if piece == self.EMPTY:
+                continue
+            piece_moves = self.generate_piece_moves(piece, False)
+            moves += piece_moves
         self.current_player = self.get_opponent(self.current_player )
         return moves
 
-    def generate_piece_moves(self, piece):
+    def generate_piece_moves(self, piece, player):
         squares = self.get_piece_squares(piece)
         moves = []
         if piece == self.PAWN:
@@ -604,7 +609,7 @@ class BitboardChess:
             return moves
         elif piece == self.KING:
             for square in squares:
-                moves += self.generate_king_moves(square)
+                moves += self.generate_king_moves(square, player)
             return moves
 
     def get_piece_squares(self, piece):
