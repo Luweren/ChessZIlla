@@ -45,7 +45,7 @@ To improve the algorithm we used in milestone III, we focused on implementing th
 
 In order to do that we used the Upper Confidence Bound formula: 
 
-`ucb = curr_node.v + 2*(sqrt(log(curr_node.N+e+(10*-6))/(curr_node.n+(10*-10))))`
+`ucb = curr_node.v + 2*(sqrt(log(curr_node.N+e+(10**-6))/(curr_node.n+(10**-10))))`
 
 - v = winning score as an evaluation of the current board
 - N = number of times parent node has been visited
