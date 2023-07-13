@@ -16,7 +16,7 @@ def main_loop(bitboard:Main.BitboardChess, board_fen,depth):
     while not bitboard.game_over():
         #
 
-        best_move = monte_carlo.mcts(bitboard,bitboard.game_over(),bitboard.current_player,10)
+        best_move = monte_carlo.mcts(bitboard,bitboard.game_over(),bitboard.current_player,15)
         if best_move is None:
             best_move = alpha_beta.minmax_get_best_move(bitboard, depth)
             best_move = best_move[0][1]
