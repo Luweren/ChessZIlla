@@ -1,4 +1,4 @@
-
+import pickle
 
 
 def shift(bitboard, value):
@@ -78,11 +78,28 @@ class BitboardChess:
         }
 
         self.current_player = self.WHITE
+        self.king_check = False
+
+    def get_king_check(self):
+        self.king_check = True
+        
+        moves = self.generate_all_opponent_moves()
+
+        #print(moves)
+
+        for move in moves:
+            if self.get_square_name(self.piece_bitboards[self.current_player][self.KING]) == move[1]:
+                print(self.get_square_name(self.piece_bitboards[self.current_player][self.KING]), move[1])
+                return 1
+        return 0
 
     def currentPlayer(self):
         return self.current_player
+    
+
     def make_move(self, from_square, to_square):
         piece = self.get_piece_on_square(from_square)
+
         if piece is None:
             raise ValueError("No piece found on the source square.")
 
@@ -98,8 +115,17 @@ class BitboardChess:
         if self.is_piece_on_square(opponent, to_square):
             self.capture_piece(opponent, to_square)
 
+        #self.print_board()
+
+        #check for check after move
+        if self.get_king_check():
+            print("CHECK")
+            return 0
+
         # Switch players
         self.current_player = opponent
+
+        return 1
 
     def move_piece(self, piece, from_square, to_square):
         from_bb = self.piece_bitboards[self.current_player][piece]
@@ -238,16 +264,21 @@ class BitboardChess:
             if self.is_piece_on_square(self.current_player, dest_square_char):
                 continue
 
+
             moves.append((self.get_square_name(square), dest_square_char))
 
             # Check for castling moves
 
         if self.can_castle_kingside(self.current_player):
             kingside_dest = self.squares['g1'] if self.current_player == self.WHITE else self.squares['g8']
+
+
             moves.append((self.get_square_name(square), self.get_square_name(kingside_dest)))
 
         if self.can_castle_queenside(self.current_player):
             queenside_dest = self.squares['c1'] if self.current_player == self.WHITE else self.squares['c8']
+            
+
             moves.append((self.get_square_name(square), self.get_square_name(queenside_dest)))
 
         return moves
@@ -343,6 +374,7 @@ class BitboardChess:
                 continue
             if self.is_piece_on_square(self.current_player, dest_square_char):
                 continue
+
 
             moves.append((self.get_square_name(square), dest_square_char))
 
@@ -592,80 +624,8 @@ class BitboardChess:
         return squares
 
 chess = BitboardChess()
-fen = 'rnbqkbnr/pppppppp/8/pB6/3N4/8/PPPPPPPP/RN2KBNR w - - 0 1'
-chess.load_from_fen(fen)
-chess.print_board()
-print(chess.get_piece_on_square('b2'))
-print(chess.currentPlayer())
-chess.make_move('b1','c3')
-print(chess.currentPlayer())
-chess.make_move('e7','e6')
-chess.make_move('c3','d5')
-chess.make_move('a5','a4')
-chess.make_move('d2','d3')
-chess.make_move('h7','h6')
-chess.print_board()
-
-
-
-
-#chess.make_move('h7','h6')
-#chess.make_move('c1','d2')
-
-#print(chess.is_legal_bishop_move('c1','e3'))
-#print(chess.is_legal_bishop_move('f8','e7'))
-a = chess.squares['a8']
-print(a)
-print(chess.get_square_name(a))
-rookm = chess.generate_bishop_moves('b5')
-print(rookm)
-#testing king's, knight's, pawn's movement generation
-print("king moves from e1")
-kingm = chess.generate_king_moves('e1')
-print(kingm)
-
-print("knight moves from g1")
-knightm = chess.generate_knight_moves('g1')
-print(knightm)
-
-print("knight moves from g8")
-knightm = chess.generate_knight_moves('g8')
-print(knightm)
-
-print("testing white pawn moves")
-pawnm_double_white = chess.generate_pawn_moves('b2')
-print(pawnm_double_white)
-
-pawnm_single_white = chess.generate_pawn_moves('a2')
-print(pawnm_single_white)
-
-#using black pawn to test a white pawn's capture
-pawnm_capture_white = chess.generate_pawn_moves('e6')
-print(pawnm_capture_white)
-
-pawnm_nomove = chess.generate_pawn_moves('d3')
-print(pawnm_nomove)
-
-#changing side
-
-print("testing black pawn moves")
-pawnm_single_black = chess.generate_pawn_moves('d7')
-print(pawnm_single_black)
-pawnm_double_black = chess.generate_pawn_moves('f7')
-print(pawnm_double_black)
-pawnm_capture_black = chess.generate_pawn_moves('e6')
-print(pawnm_capture_black)
-print("Queen Moves:")
-queanmoves = chess.generate_king_moves('e1')
-print(queanmoves)
-print(chess.get_piece_on_square('d4'))
-print(chess.generate_all_player_moves())
-print(chess.generate_all_opponent_moves())
-#problem: it adds: 
-#square  e7  added
-#square  d6  added  # where is c5?
-#square  b4  added  # where is a3?
-#square  g7  added
-#square  h6  added
-#square  b5  added
-#square  e2  added   # how come?  #should not be here
+fen = '8/8/8/8/8/8/8/K2b4 w - - 0 1'
+fen2 = '8/8/8/8/8/8/b7/Kb6 w - - 0 1'
+start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+chess.load_from_fen(start)
+#chess.print_board()
