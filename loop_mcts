@@ -1,0 +1,31 @@
+import Main
+import evaluate
+import monte_carlo
+
+def main_loop(bitboard:Main.BitboardChess,player):  #does not work => endless loop
+    #bitboard.load_from_fen(board_fen)
+    checkmate = False
+    remi = False
+    boards = []
+    while not checkmate:
+        root = monte_carlo.node()
+        root.state = bitboard
+        best_move = monte_carlo.mcts(root,checkmate,player, iterations = 10, depth = 20)
+        bitboard.make_move(best_move[0],best_move[1])
+        bitboard.print_board()
+        print("Eval für Spieler: " + bitboard.current_player)
+        print(evaluate.evaluate_board(bitboard, bitboard.current_player))
+        if player == "white": player = "black"
+        else: player == "white"
+        inp = input(" ")
+
+#in monte_carlo we need to handle is_game_over()
+bitboard = Main.BitboardChess()
+#main_loop(bitboard, "white")
+root = monte_carlo.node()
+root.state = bitboard
+best_move = monte_carlo.mcts(root,False,"white")  #while some executions reach maximum recursion depth (error), other executions do not reach it
+bitboard.make_move(best_move[0],best_move[1])
+bitboard.print_board()
+print("Eval für Spieler: " + bitboard.current_player)
+print(evaluate.evaluate_board(bitboard, bitboard.current_player))

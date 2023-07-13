@@ -1,3 +1,6 @@
+
+
+
 def shift(bitboard, value):
     if value < 0:
         # Convert negative left value to positive right value
@@ -230,7 +233,8 @@ class BitboardChess:
             
             dest_square = shift(from_square, direction)
             dest_square_char = self.get_square_name(dest_square)
-
+            if dest_square_char is None:
+                continue
             if self.is_piece_on_square(self.current_player, dest_square_char):
                 continue
 
@@ -335,7 +339,8 @@ class BitboardChess:
 
             dest_square = shift(from_square, direction)
             dest_square_char = self.get_square_name(dest_square)
-
+            if dest_square_char is None:
+                continue
             if self.is_piece_on_square(self.current_player, dest_square_char):
                 continue
 
@@ -359,6 +364,7 @@ class BitboardChess:
             from_square = square
             from_square_char = self.get_square_name(from_square)
 
+
             #checking edges of the board
             if from_square_char[0] == 'a' and ((direction == 7) or (direction == -9)):
                 continue
@@ -368,6 +374,8 @@ class BitboardChess:
 
             dest_square = shift(from_square, direction)
             dest_square_char = self.get_square_name(dest_square)
+            if dest_square_char is None:
+                continue
             #vertical movement
             #while we go vertical on the board we always check the square in front of us
             if direction == 8 or direction == 16 or direction == -8 or direction == -16:  # if direction % 8 == 0: 
@@ -407,6 +415,7 @@ class BitboardChess:
             # Convert the square from string to integer representation
             square = self.squares[square]
 
+        from_square_char = self.get_square_name(square)
         moves = []
 
         # Define the rook's possible move directions (up, down, left, right)
@@ -414,44 +423,38 @@ class BitboardChess:
 
         for direction in directions:
             dest_square = square
-
+            
+            if from_square_char[0] == 'a' and direction == -1:
+                continue  # Reached the left edge of the board, cannot move further
+            if from_square_char[0] == 'h' and direction == 1:
+                continue  # Reached the right edge of the board
+            if from_square_char[1] == '1' and direction == -8:
+                continue  # Reached the bottom edge of the board
+            if from_square_char[1] == '8' and direction == 8:
+                continue  # Reached the top edge of the board
+                
             while True:
                 dest_square = shift(dest_square, direction)
                 dest_square_char = self.get_square_name(dest_square)
                 if dest_square_char is None:
                     break
-                if dest_square_char[0] == 'a' and direction == -1:
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the left edge of the board
-
-                if dest_square_char[0] == 'h' and direction == 1:
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the right edge of the board
-
-                if dest_square_char[1] == '1' and direction == -8:
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the bottom edge of the board
-
-                if dest_square_char[1] == '8' and direction == 8:
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the top edge of the board
 
                 if self.is_piece_on_square(self.current_player, dest_square_char):
                     break  # Reached own piece, cannot move further
 
                 moves.append((self.get_square_name(square), dest_square_char))
+
+                if dest_square_char[0] == 'a' and direction == -1:
+                    break  # Reached the left edge of the board, cannot move further
+
+                if dest_square_char[0] == 'h' and direction == 1:
+                    break  # Reached the right edge of the board
+
+                if dest_square_char[1] == '1' and direction == -8:
+                    break  # Reached the bottom edge of the board
+
+                if dest_square_char[1] == '8' and direction == 8:
+                    break  # Reached the top edge of the board
 
                 if self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char):
                     break  # Reached opponent's piece, can capture and stop moving
@@ -464,6 +467,7 @@ class BitboardChess:
             # Convert the square from string to integer representation
             square = self.squares[square]
 
+        from_square_char = self.get_square_name(square)
         moves = []
 
         # Define the bishop's possible move directions (up, down, left, right)
@@ -471,45 +475,38 @@ class BitboardChess:
 
         for direction in directions:
             dest_square = square
+            if from_square_char[0] == 'a' and (direction == 7 or direction == -9):
+                continue  # Reached the left edge of the board
+
+            if from_square_char[0] == 'h' and (direction == -7 or direction == 9):
+                continue  # Reached the right edge of the board
+
+            if from_square_char[1] == '1' and (direction == -7 or direction == -9):
+                continue  # Reached the bottom edge of the board
+
+            if from_square_char[1] == '8' and (direction == 7 or direction == 9):
+                continue  # Reached the top edge of the board   
 
             while True:
                 dest_square = shift(dest_square, direction)
                 dest_square_char = self.get_square_name(dest_square)
                 if dest_square_char is None:
                     break
-                if dest_square_char[0] == 'a' and (direction == 7 or direction == -9):
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the left edge of the board
-
-                if dest_square_char[0] == 'h' and (direction == -7 or direction == 9):
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the right edge of the board
-
-                if dest_square_char[1] == '1' and (direction == -7 or direction == -9):
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the bottom edge of the board
-
-                if dest_square_char[1] == '8' and (direction == 7 or direction == 9):
-                    if self.is_piece_on_square(self.current_player, dest_square_char):
-                        break  # Reached own piece, cannot move further
-
-                    moves.append((self.get_square_name(square), dest_square_char))
-                    break  # Reached the top edge of the board
 
                 if self.is_piece_on_square(self.current_player, dest_square_char):
                     break  # Reached own piece, cannot move further
-
                 moves.append((self.get_square_name(square), dest_square_char))
+                if dest_square_char[0] == 'a' and (direction == 7 or direction == -9):
+                    break  # Reached the left edge of the board
 
+                if dest_square_char[0] == 'h' and (direction == -7 or direction == 9):
+                    break  # Reached the right edge of the board
+
+                if dest_square_char[1] == '1' and (direction == -7 or direction == -9):
+                    break  # Reached the bottom edge of the board
+
+                if dest_square_char[1] == '8' and (direction == 7 or direction == 9):
+                    break  # Reached the top edge of the board                
                 if self.is_piece_on_square(self.get_opponent(self.current_player), dest_square_char):
                     break  # Reached opponent's piece, can capture and stop moving
 
@@ -586,6 +583,14 @@ class BitboardChess:
                 squares.append(square)
         return squares
 
+    def get_piece_squares_according_to_player(self, piece, player):
+        squares = []
+        bitboard = self.piece_bitboards[player][piece]
+        for square in self.squares:
+            if bitboard & self.squares[square] != 0:
+                squares.append(square)
+        return squares
+
 chess = BitboardChess()
 fen = 'rnbqkbnr/pppppppp/8/pB6/3N4/8/PPPPPPPP/RN2KBNR w - - 0 1'
 chess.load_from_fen(fen)
@@ -650,14 +655,12 @@ pawnm_double_black = chess.generate_pawn_moves('f7')
 print(pawnm_double_black)
 pawnm_capture_black = chess.generate_pawn_moves('e6')
 print(pawnm_capture_black)
-
 print("Queen Moves:")
 queanmoves = chess.generate_king_moves('e1')
 print(queanmoves)
 print(chess.get_piece_on_square('d4'))
 print(chess.generate_all_player_moves())
 print(chess.generate_all_opponent_moves())
-
 #problem: it adds: 
 #square  e7  added
 #square  d6  added  # where is c5?
