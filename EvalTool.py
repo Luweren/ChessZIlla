@@ -5,6 +5,23 @@ import time
 
 chess = Main.BitboardChess()
 
+import monte_carlo
+
+
+def main_loop(bitboard:Main.BitboardChess, board_fen,depth):
+    bitboard.load_from_fen(board_fen)
+    checkmate = False
+    remi = False
+    boards = []
+    while not checkmate:
+        best_move = alpha_beta.minmax_get_best_move(bitboard,depth)
+        bitboard.make_move(best_move[1][0],best_move[1][1])
+        bitboard.print_board()
+        print("Eval für Spieler: " + bitboard.current_player)
+        print(evaluate.evaluate_board(bitboard, bitboard.current_player))
+        inp = input(" ")
+
+
 fen = '8/8/8/8/8/8/8/K2b4 w - - 0 1'
 fen2 = '8/8/8/8/8/8/b7/Kb6 w - - 0 1'
 start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -29,3 +46,4 @@ for i in range(5):
     print("Time:" + str(time.time() - timer))
 
     chess.print_board()
+
