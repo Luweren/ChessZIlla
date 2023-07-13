@@ -90,7 +90,7 @@ class BitboardChess:
 
         for move in moves:
             if self.get_square_name(self.piece_bitboards[self.current_player][self.KING]) == move[1]:
-                print(self.get_square_name(self.piece_bitboards[self.current_player][self.KING]), move[1])
+                #print(self.get_square_name(self.piece_bitboards[self.current_player][self.KING]), move[1])
                 return 1
         return 0
 
@@ -121,10 +121,10 @@ class BitboardChess:
 
         #check for check after move
         if self.get_king_check():
-            print("CHECK")
+            #print("CHECK")
             if tempstate == self.get_king_check():
                 self.over = True
-                print("MATE")
+                #print("MATE")
             return 0
 
 

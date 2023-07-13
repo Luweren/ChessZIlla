@@ -10,16 +10,22 @@ import monte_carlo
 
 def main_loop(bitboard:Main.BitboardChess, board_fen,depth):
     bitboard.load_from_fen(board_fen)
-    checkmate = False
+
     remi = False
     boards = []
-    while not checkmate:
-        best_move = alpha_beta.minmax_get_best_move(bitboard,depth)
-        bitboard.make_move(best_move[1][0],best_move[1][1])
+    while not bitboard.game_over():
+        #
+
+        best_move = monte_carlo.mcts(bitboard,bitboard.game_over(),bitboard.current_player,10)
+        if best_move is None:
+            best_move = alpha_beta.minmax_get_best_move(bitboard, depth)
+            best_move = best_move[0][1]
+        print(best_move)
+        bitboard.make_move(best_move[0],best_move[1])
         bitboard.print_board()
         print("Eval für Spieler: " + bitboard.current_player)
         print(evaluate.evaluate_board(bitboard, bitboard.current_player))
-        inp = input(" ")
+        #inp = input(" ")
 
 
 fen = '8/8/8/8/8/8/8/K2b4 w - - 0 1'
@@ -32,9 +38,8 @@ chess.print_board()
 shannon = [20, 400, 8902, 197281, 4865609]\
 
 #chess.make_move('a1', 'a2')
-
-chess.print_board()
-print(monte_carlo.mcts(chess,0,chess.current_player,10,200))
+#print(monte_carlo.mcts(chess,0,chess.current_player,10))
+main_loop(chess,start,3)
 """
 for i in range(5):
     inp = input("")
